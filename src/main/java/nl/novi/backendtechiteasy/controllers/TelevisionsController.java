@@ -4,9 +4,7 @@ import nl.novi.backendtechiteasy.classes.Television;
 import nl.novi.backendtechiteasy.classes.TelevisionRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -61,9 +59,7 @@ public class TelevisionsController {
         Television television = new Television(name, type, serial);
         televisions.put(serial, television);
 
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{serialNumber}").buildAndExpand(serial).toUri();
-
-        return ResponseEntity.created(location).build();
+        return ResponseEntity.created(null).body("Television created.");
     }
 
     @PutMapping("/televisions/{serialNumber}/changeName")
