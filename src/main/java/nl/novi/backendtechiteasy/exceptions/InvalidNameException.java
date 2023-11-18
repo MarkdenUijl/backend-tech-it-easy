@@ -1,12 +1,12 @@
 package nl.novi.backendtechiteasy.exceptions;
 
 
-public class RecordNotFoundException extends RuntimeException {
+public class InvalidNameException extends RuntimeException {
     private static final long serialVersionUID = 1L;
-    public RecordNotFoundException() {
+    public InvalidNameException() {
         super();
     }
-    public RecordNotFoundException(String message) {
+    public InvalidNameException(String message) {
         super(message);
     }
 }

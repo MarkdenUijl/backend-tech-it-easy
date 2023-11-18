@@ -1,7 +1,11 @@
 package nl.novi.backendtechiteasy.controllers;
 
 import nl.novi.backendtechiteasy.classes.Television;
-import nl.novi.backendtechiteasy.classes.TelevisionRequest;
+import nl.novi.backendtechiteasy.exceptions.BadRequestException;
+import nl.novi.backendtechiteasy.exceptions.ConflictException;
+import nl.novi.backendtechiteasy.exceptions.InvalidNameException;
+import nl.novi.backendtechiteasy.exceptions.RecordNotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,26 +14,31 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/televisions")
 public class TelevisionsController {
     private Map<Integer, Television> televisions = new HashMap<>();
 
-    @GetMapping("/televisions")
+    @GetMapping
     public ResponseEntity<ArrayList<Television>> getAllTelevisions() {
         ArrayList<Television> televisionList = new ArrayList<>(televisions.values());
 
-        return ResponseEntity.ok(televisionList);
+        if (televisionList.size() > 0) {
+            return new ResponseEntity<>(televisionList, HttpStatus.OK);
+        } else {
+            throw new RecordNotFoundException("There are no televisions in the database.");
+        }
     }
 
-    @GetMapping("/televisions/{serialNumber}")
+    @GetMapping("/{serialNumber}")
     public ResponseEntity<Object> getTelevisionBySerialNumber(@PathVariable int serialNumber) {
         if(televisions.containsKey(serialNumber)) {
-            return ResponseEntity.ok(televisions.get(serialNumber));
+            return new ResponseEntity<>(televisions.get(serialNumber), HttpStatus.OK);
+        } else {
+            throw new RecordNotFoundException();
         }
-
-        return ResponseEntity.ok("Television not found.");
     }
 
-    @GetMapping("/televisions/filter")
+    @GetMapping("/filter")
     public ResponseEntity<ArrayList<Television>> getTelevisionByFilter(
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String name) {
@@ -43,55 +52,55 @@ public class TelevisionsController {
             }
         }
 
-        return ResponseEntity.ok(sortedList);
+        if (sortedList.size() > 0) {
+            return new ResponseEntity<>(sortedList, HttpStatus.OK);
+        } else {
+            throw new RecordNotFoundException("No televisions with these parameters found.");
+        }
     }
 
-    @PostMapping("/televisions/store")
-    public ResponseEntity<Object> storeTelevision(@RequestBody TelevisionRequest televisionRequest) {
-        String name = televisionRequest.getName();
-        String type = televisionRequest.getType();
-        int serial = televisionRequest.getSerialNumber();
+    @PostMapping("/store")
+    public ResponseEntity<Object> storeTelevision(@RequestBody Television television) {
+        int serial = television.getSerialNumber();
+
+        if (television.getName().length() > 20) {
+            throw new InvalidNameException("This name is too long.");
+        }
 
         if (televisions.containsKey(serial)) {
-            return ResponseEntity.ok("There is already a television with that serial number in the database.");
+            throw new ConflictException("There is already a television with that serial number.");
         }
 
-        Television television = new Television(name, type, serial);
         televisions.put(serial, television);
 
-        return ResponseEntity.created(null).body("Television created.");
+        return new ResponseEntity(television, HttpStatus.CREATED);
     }
 
-    @PutMapping("/televisions/{serialNumber}/changeName")
-    public ResponseEntity<Object> changeTelevisionName(@PathVariable int serialNumber, @RequestParam String name) {
-        if(televisions.containsKey(serialNumber)) {
-            televisions.get(serialNumber).setName(name);
+    @PutMapping("/{serialNumber}")
+    public ResponseEntity<Object> changeTelevision(@PathVariable int serialNumber, @RequestBody Television television) {
+        int newSerialNumber = television.getSerialNumber();
 
-            return ResponseEntity.ok("Television name changed to " + name);
+        if (serialNumber != newSerialNumber) {
+            throw new BadRequestException("New serial number does not match old serial number.");
         }
 
-        return ResponseEntity.ok("Television not found.");
-    }
-
-    @PutMapping("/televisions/{serialNumber}/changeType")
-    public ResponseEntity<Object> changeTelevisionType(@PathVariable int serialNumber, @RequestParam String type) {
         if(televisions.containsKey(serialNumber)) {
-            televisions.get(serialNumber).setType(type);
+            televisions.replace(serialNumber, television);
 
-            return ResponseEntity.ok("Television type changed to " + type);
+            return new ResponseEntity(television, HttpStatus.OK);
+        } else {
+            throw new RecordNotFoundException();
         }
-
-        return ResponseEntity.ok("Television not found.");
     }
 
-    @DeleteMapping("/televisions/{serialNumber}/delete")
+    @DeleteMapping("/{serialNumber}")
     public ResponseEntity<Object> deleteTelevision(@PathVariable int serialNumber) {
         if(televisions.containsKey(serialNumber)) {
             televisions.remove(serialNumber);
 
-            return ResponseEntity.ok("Television was removed.");
+            return new ResponseEntity<>("Television was removed", HttpStatus.OK);
+        } else {
+            throw new RecordNotFoundException();
         }
-
-        return ResponseEntity.ok("Television not found.");
     }
 }

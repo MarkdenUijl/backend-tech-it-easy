@@ -1,12 +1,12 @@
 package nl.novi.backendtechiteasy.exceptions;
 
 
-public class RecordNotFoundException extends RuntimeException {
+public class ConflictException extends RuntimeException {
     private static final long serialVersionUID = 1L;
-    public RecordNotFoundException() {
+    public ConflictException() {
         super();
     }
-    public RecordNotFoundException(String message) {
+    public ConflictException(String message) {
         super(message);
     }
 }
