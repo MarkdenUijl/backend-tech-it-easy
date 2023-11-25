@@ -1,0 +1,1 @@
+INSERT INTO televisions(id, type, brand, name, price, available_sizes, refresh_rate, screen_type, screen_quality, smart_tv, wifi, voice_control, hdr, bluetooth, ambi_light, original_stock, sold, date_of_manufacturing) VALUES (1, 'OLED smart tv', 'Sony', 'Sony 55inch 4K OLED Smart TV', 1099.99, 55, 60, 'OLED', '4K', true, true, false, true, false, false, 12, 4, '2022-09-01')

@@ -1,6 +1,10 @@
 package nl.novi.backendtechiteasy.models;
 
 import jakarta.persistence.*;
+import nl.novi.backendtechiteasy.enums.AvailableSizes;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "televisions")
@@ -12,8 +16,8 @@ public class Television {
     private String brand;
     private String name;
     private Double price;
-    @Column(name = "available_size")
-    private Double availableSize;
+    @Column(name = "available_sizes")
+    private AvailableSizes availableSizes;
     @Column(name = "refresh_rate")
     private Double refreshRate;
     @Column(name = "screen_type")
@@ -32,6 +36,17 @@ public class Television {
     @Column(name = "original_stock")
     private int originalStock;
     private int sold;
+    @Column(name = "date_of_manufacturing")
+    @Temporal(TemporalType.DATE)
+    private LocalDate dom;
+
+    public LocalDate getDom() {
+        return dom;
+    }
+
+    public void setDom(LocalDate dom) {
+        this.dom = dom;
+    }
 
     public Long getId() {
         return id;
@@ -69,12 +84,12 @@ public class Television {
         this.price = price;
     }
 
-    public Double getAvailableSize() {
-        return availableSize;
+    public AvailableSizes getAvailableSizes() {
+        return availableSizes;
     }
 
-    public void setAvailableSize(Double availableSize) {
-        this.availableSize = availableSize;
+    public void setAvailableSizes(AvailableSizes availableSize) {
+        this.availableSizes = availableSize;
     }
 
     public Double getRefreshRate() {
