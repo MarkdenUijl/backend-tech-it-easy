@@ -61,7 +61,7 @@ public class TelevisionsController {
                         .toUriString()
         );
 
-        return ResponseEntity.created(uri).body(television);
+        return ResponseEntity.created(null).body(television);
     }
 
     @PutMapping("/{id}")
