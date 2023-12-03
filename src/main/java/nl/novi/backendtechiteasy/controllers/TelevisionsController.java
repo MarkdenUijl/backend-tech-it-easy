@@ -1,98 +1,72 @@
 package nl.novi.backendtechiteasy.controllers;
 
-import nl.novi.backendtechiteasy.exceptions.RecordNotFoundException;
-import nl.novi.backendtechiteasy.models.Television;
-import nl.novi.backendtechiteasy.repositories.TelevisionRepository;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import nl.novi.backendtechiteasy.dtos.TelevisionDto;
+import nl.novi.backendtechiteasy.dtos.TelevisionInputDto;
+import nl.novi.backendtechiteasy.services.TelevisionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/televisions")
 public class TelevisionsController {
-    @Autowired
-    private TelevisionRepository televisionRepository;
+    private final TelevisionService service;
+
+    public TelevisionsController(TelevisionService service) {
+        this.service = service;
+    }
 
     @GetMapping
-    public ResponseEntity<List<Television>> getAllTelevisions(
-            @RequestParam(required = false) String brand,
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) Boolean wifi,
-            @RequestParam(required = false) Boolean voiceControl,
-            @RequestParam(required = false) Boolean hdr,
-            @RequestParam(required = false) Boolean bluetooth,
-            @RequestParam(required = false) Boolean ambiLight
-    ) {
-        List<Television> televisions = televisionRepository.findAllByFilters(brand, type, wifi, voiceControl, hdr, bluetooth, ambiLight);
-
-        if (televisions.isEmpty()) {
-            throw new RecordNotFoundException();
-        } else {
-            return new ResponseEntity<>(televisions, HttpStatus.OK);
-        }
+    public ResponseEntity<List<TelevisionDto>> getAllTelevisions() {
+        return new ResponseEntity<>(service.getAllTelevisions(), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Television> getTelevisionById(@PathVariable("id") Long id) {
-        Optional<Television> television = televisionRepository.findById(id);
-
-        if (television.isEmpty()) {
-            throw new RecordNotFoundException();
-        } else {
-            return new ResponseEntity<>(television.get(), HttpStatus.OK);
-        }
+    public ResponseEntity<TelevisionDto> getTelevisionById(@PathVariable("id") Long id) {
+        return new ResponseEntity<>(service.getTelevisionById(id), HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Television> addTelevision(@RequestBody Television television) {
-        televisionRepository.save(television);
+    public ResponseEntity<Object> addTelevision(@Valid @RequestBody TelevisionInputDto televisionDto, BindingResult br) {
 
-        URI uri = URI.create(
-                ServletUriComponentsBuilder
-                        .fromCurrentRequest()
-                        .path("/" + television.getId())
-                        .toUriString()
-        );
+        if (br.hasFieldErrors()) {
+            StringBuilder sb = new StringBuilder();
+            for (FieldError fe : br.getFieldErrors()) {
+                sb.append(fe.getField());
+                sb.append(" : ");
+                sb.append(fe.getDefaultMessage());
+                sb.append("\n");
+            }
+            return ResponseEntity.badRequest().body(sb.toString());
+        }
+        else {
+            service.storeTelevision(televisionDto);
 
-        return ResponseEntity.created(uri).body(television);
+            URI uri = URI.create(
+                    ServletUriComponentsBuilder
+                            .fromCurrentRequest()
+                            .path("/" + televisionDto.id)
+                            .toUriString()
+            );
+
+            return ResponseEntity.created(uri).body(televisionDto);
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Television> replaceTelevision(@PathVariable("id") Long id, @RequestBody Television newTelevision) {
-        Optional<Television> television = televisionRepository.findById(id);
-
-        if (television.isEmpty()) {
-            throw new RecordNotFoundException();
-        } else {
-            Television existingTelevision = television.get();
-
-            BeanUtils.copyProperties(newTelevision, existingTelevision, "id");
-
-            televisionRepository.save(existingTelevision);
-
-            return new ResponseEntity<>(existingTelevision, HttpStatus.OK);
-        }
+    public ResponseEntity<TelevisionDto> replaceTelevision(@PathVariable("id") Long id, @RequestBody TelevisionInputDto newTelevision) {
+        return new ResponseEntity<>(service.changeTelevision(id, newTelevision), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Television> deleteTelevision(@PathVariable("id") Long id) {
-        Optional<Television> television = televisionRepository.findById(id);
-
-        if (television.isEmpty()) {
-            throw new RecordNotFoundException();
-        } else {
-            Television existingTelevision = television.get();
-
-            televisionRepository.delete(existingTelevision);
-
-            return new ResponseEntity<>(existingTelevision, HttpStatus.OK);
-        }
+    public ResponseEntity<TelevisionDto> deleteTelevision(@PathVariable("id") Long id) {
+        return new ResponseEntity<>(service.deleteTelevision(id), HttpStatus.OK);
     }
 }
