@@ -1,9 +1,6 @@
 package nl.novi.backendtechiteasy.controllers;
 
-import nl.novi.backendtechiteasy.exceptions.BadRequestException;
-import nl.novi.backendtechiteasy.exceptions.ConflictException;
-import nl.novi.backendtechiteasy.exceptions.InvalidNameException;
-import nl.novi.backendtechiteasy.exceptions.RecordNotFoundException;
+import nl.novi.backendtechiteasy.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
